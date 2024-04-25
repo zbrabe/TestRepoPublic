@@ -1,13 +1,28 @@
 name: GitHub Actions Demo 2
-run-name: ${{ github.actor }} is testing out GitHub Actions
 on:
   workflow_dispatch:  # manual triggering
+
 jobs:
   list-files-in-repo-demo:
     runs-on: self-hosted
     steps:
-      - run: echo "The job was triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+      - name: Check if self-hosted or GitHub-hosted
+        run: |
+          if [[ -n "$GITHUB_ACTIONS" ]]; then
+            echo "This job is now running on a GitHub-hosted server."
+          else
+            echo "This job is now running on a self-hosted server."
+          fi
+
+      - name: Log Info
+        run: echo "The job was triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: |
+          if [[ -n "$GITHUB_ACTIONS" ]]; then
+            echo "This job is now running on a GitHub-hosted server."
+          else
+            echo "This job is now running on a self-hosted server."
+          fi
       - run: echo "The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
       
       - name: Check out repository code
@@ -19,3 +34,4 @@ jobs:
         run: |
           ls ${{ github.workspace }}
       - run: echo "This job's status is ${{ job.status }}."
+
