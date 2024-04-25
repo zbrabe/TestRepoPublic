@@ -37,11 +37,9 @@ jobs:
             sqlcmd -S ${{ secrets.SQL_SERVER_NAME }} -U ${{ secrets.SQL_USERNAME }} -P "${{ secrets.SQL_PASSWORD }}" -Q "SELECT @@VERSION"
             sqlcmd -S ${{ secrets.SQL_SERVER_NAME }} -U ${{ secrets.SQL_USERNAME }} -P "${{ secrets.SQL_PASSWORD }}" -i .github/test/demo_script.sql -v ENV_VARIABLE="${ENV_VARIABLE}"
             
-            # Set output and status for successful execution
             echo "::set-output name=sql-output::SQL script executed successfully"
             echo "::set-env name=SQL_STATUS::Success"
           } catch(err) {
-            # Set output and status for failed execution
             echo "::error::SQL script execution failed with error: $err"
             echo "::set-output name=sql-output::SQL script failed"
             echo "::set-env name=SQL_STATUS::Failed"
@@ -49,11 +47,10 @@ jobs:
 
   send-email:
     runs-on: self-hosted
-    needs: run-sql-script
     steps:
       - name: Send email
         uses: dawidd6/action-send-mail@v3
-        if: always() # Always run the step, regardless of previous job statuses
+        if: always() # Ensure the step runs regardless of previous job statuses
         with:
           server_address: smtp.gmail.com
           server_port: 587
