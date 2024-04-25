@@ -21,6 +21,8 @@ jobs:
 
   run-sql-script:
     runs-on: self-hosted # a self-hosted machine that can connect to the SQL server and run the SQL script
+    outputs:
+      sql-output: ${{ steps.set-output.result }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -29,14 +31,17 @@ jobs:
         run: echo "ENV_VARIABLE=new_value" >> $GITHUB_ENV
 
       - name: Run SQL script
+        id: set-output
         run: |
-          sqlcmd -S ${{ secrets.SQL_SERVER_NAME }} -U ${{ secrets.SQL_USERNAME }} -P "${{ secrets.SQL_PASSWORD }}" -Q "SELECT @@VERSION"
-          sqlcmd -S ${{ secrets.SQL_SERVER_NAME }} -U ${{ secrets.SQL_USERNAME }} -P "${{ secrets.SQL_PASSWORD }}" -i .github/test/demo_script.sql -v ENV_VARIABLE="${ENV_VARIABLE}"
+          try {
+            sqlcmd -S ${{ secrets.SQL_SERVER_NAME }} -U ${{ secrets.SQL_USERNAME }} -P "${{ secrets.SQL_PASSWORD }}" -Q "SELECT @@VERSION"
+            sqlcmd -S ${{ secrets.SQL_SERVER_NAME }} -U ${{ secrets.SQL_USERNAME }} -P "${{ secrets.SQL_PASSWORD }}" -i .github/test/demo_script.sql -v ENV_VARIABLE="${ENV_VARIABLE}"
+          } catch(err) {
+            echo "::error::SQL script execution failed with error: $err"
+            echo "::set-output name=sql-output::SQL script failed" # Output for successful execution
+            exit 1
+          } 
 
-  send-email:
-    runs-on: self-hosted
-    needs: run-sql-script
-    steps:
       - name: Send email
         uses: dawidd6/action-send-mail@v3
         with:
@@ -45,5 +50,7 @@ jobs:
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
           subject: "SQL Script Execution Result"
-          body: ${{ steps.sql-script.outputs.sql-output }}
+          body: |
+            ${{ steps.set-output.outputs.sql-output }}
+            Script execution status: ${{ job.status }}
           to: zbrabe@gmail.com
