@@ -6,24 +6,16 @@ jobs:
   list-files-in-repo-demo:
     runs-on: self-hosted
     steps:
-      - name: Check if self-hosted or GitHub-hosted
-        run: |
-          if [[ -n "$GITHUB_ACTIONS" ]]; then
-            echo "This job is now running on a GitHub-hosted server."
-          else
-            echo "This job is now running on a self-hosted server."
-          fi
-
       - name: Log Info
-        run: echo "The job was triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: |
-          if [[ -n "$GITHUB_ACTIONS" ]]; then
-            echo "This job is now running on a GitHub-hosted server."
-          else
+        run: |
+          echo "The job was triggered by a ${{ github.event_name }} event."
+          echo "This job is now running on a ${{ runner.os }} server."
+          if [[ -z "$GITHUB_ACTIONS" ]]; then
             echo "This job is now running on a self-hosted server."
+          else
+            echo "This job is now running on a GitHub-hosted server."
           fi
-      - run: echo "The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+          echo "The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
       
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -34,4 +26,3 @@ jobs:
         run: |
           ls ${{ github.workspace }}
       - run: echo "This job's status is ${{ job.status }}."
-
