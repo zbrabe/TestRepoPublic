@@ -56,8 +56,10 @@ jobs:
           server_port: 587
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
+          from: ${{ secrets.MAIL_USERNAME }}
           subject: "SQL Script Execution Result"
           body: |
             ${{ steps.run-sql-script.outputs.sql-output }}
             Script execution status: ${{ env.SQL_STATUS }}
           to: zbrabe@gmail.com
+
