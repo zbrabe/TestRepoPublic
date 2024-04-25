@@ -1,0 +1,46 @@
+name: GitHub Actions Demo 3
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # manual triggering
+
+jobs:
+  log-info:
+    runs-on: self-hosted
+    steps:
+      - name: Log Info
+        run: |
+          echo "The job was triggered by a ${{ github.event_name }} event."
+          echo "This job is now running on a ${{ runner.os }} server."
+          if [ -z "${{ env.GITHUB_ACTIONS }}" ]; then
+            echo "This job is now running on a self-hosted server."
+          else
+            echo "This job is now running on a GitHub-hosted server."
+
+  run-sql-script:
+    runs-on: self-hosted # a self-hosted machine that can connect to the SQL server and run the SQL script
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+         
+      - name: Set environment variable dynamically
+        run: echo "ENV_VARIABLE=new_value" >> $GITHUB_ENV
+
+      - name: Run SQL script
+        run: |
+          sqlcmd -S ${{ secrets.SQL_SERVER_NAME }} -U ${{ secrets.SQL_USERNAME }} -P "${{ secrets.SQL_PASSWORD }}" -Q "SELECT @@VERSION"
+          sqlcmd -S ${{ secrets.SQL_SERVER_NAME }} -U ${{ secrets.SQL_USERNAME }} -P "${{ secrets.SQL_PASSWORD }}" -i .github/test/demo_script.sql -v ENV_VARIABLE="${ENV_VARIABLE}"
+
+      - name: Send email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "SQL Script Execution Result"
+          body: ${{ steps.sql-script.outputs.sql-output }}
+          to: zbrabe@gmail.com
+
+      
