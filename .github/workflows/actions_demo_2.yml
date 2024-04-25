@@ -10,7 +10,7 @@ jobs:
         run: |
           echo "The job was triggered by a ${{ github.event_name }} event."
           echo "This job is now running on a ${{ runner.os }} server."
-          if [[ -z "$GITHUB_ACTIONS" ]]; then
+          if [ -z "${{ env.GITHUB_ACTIONS }}" ]; then
             echo "This job is now running on a self-hosted server."
           else
             echo "This job is now running on a GitHub-hosted server."
