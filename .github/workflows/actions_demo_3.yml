@@ -65,5 +65,5 @@ jobs:
             SQL script execution status: ${{ needs.run-sql-script.result }}
             ${{ needs.run-sql-script.outputs.sql-output }}
             ${{ steps.run-sql-script.outputs.step-output }}
-            Job Results: [View Job Results](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            Job Results: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           to: zbrabe@gmail.com
