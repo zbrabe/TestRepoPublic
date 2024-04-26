@@ -38,16 +38,14 @@ jobs:
             sqlcmd -S ${{ secrets.SQL_SERVER_NAME }} -U ${{ secrets.SQL_USERNAME }} -P "${{ secrets.SQL_PASSWORD }}" -i .github/test/demo_script.sql -v ENV_VARIABLE="${ENV_VARIABLE}"
             
             echo "::set-output name=sql-output::SQL script executed successfully"
-            echo "::set-env name=SQL_STATUS::Success"
           } catch(err) {
             echo "::error::SQL script execution failed with error: $err"
             echo "::set-output name=sql-output::SQL script failed"
-            echo "::set-env name=SQL_STATUS::Failed"
           } 
 
   send-email:
     runs-on: self-hosted
-    needs: [run-sql-script]
+    needs: [log-info, run-sql-script]
     if: ${{ always() }}
     steps:
       - name: Send email
@@ -61,7 +59,7 @@ jobs:
           from: ${{ secrets.MAIL_USERNAME }}
           subject: "SQL Script Execution Result"
           body: |
+            SQL script execution status: ${{ needs.run-sql-script.outcome }}
             ${{ steps.run-sql-script.outputs.sql-output }}
-            Script execution status: ${{ env.SQL_STATUS }}
           to: zbrabe@gmail.com
 
