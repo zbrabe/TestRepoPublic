@@ -48,6 +48,7 @@ jobs:
   send-email:
     runs-on: self-hosted
     needs: [run-sql-script]
+    if: ${{ always() }}
     steps:
       - name: Send email
         uses: dawidd6/action-send-mail@v3
