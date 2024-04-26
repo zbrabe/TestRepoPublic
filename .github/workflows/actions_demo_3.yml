@@ -22,7 +22,7 @@ jobs:
   run-sql-script:
     runs-on: self-hosted # a self-hosted machine that can connect to the SQL server and run the SQL script
     outputs:
-      sql-output: ${{ steps.set-output.result }}
+      sql-output: ${{ steps.set-output.outputs.sql-output }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -40,7 +40,7 @@ jobs:
             echo "::set-output name=sql-output::SQL script executed successfully"
           } catch(err) {
             echo "::error::SQL script execution failed with error: $err"
-            echo "::set-output name=sql-output::SQL script failed"
+            echo "::set-output name=sql-output::SQL script execution failed"
           } 
 
   send-email:
