@@ -22,7 +22,7 @@ jobs:
   run-sql-script:
     runs-on: self-hosted # a self-hosted machine that can connect to the SQL server and run the SQL script
     outputs:
-      sql-output: ${{ steps.set-output.outputs.sql-output }}
+      sql-output: ${{ steps.sql-script.outputs.sql-output }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -31,17 +31,18 @@ jobs:
         run: echo "ENV_VARIABLE=new_value" >> $GITHUB_ENV
 
       - name: Run SQL script
-        id: set-output
+        id: sql-script
         run: |
-          try {
-            sqlcmd -S ${{ secrets.SQL_SERVER_NAME }} -U ${{ secrets.SQL_USERNAME }} -P "${{ secrets.SQL_PASSWORD }}" -Q "SELECT @@VERSION"
-            sqlcmd -S ${{ secrets.SQL_SERVER_NAME }} -U ${{ secrets.SQL_USERNAME }} -P "${{ secrets.SQL_PASSWORD }}" -i .github/test/demo_script.sql -v ENV_VARIABLE="${ENV_VARIABLE}"
-            
+          set -e
+          sqlcmd -S ${{ secrets.SQL_SERVER_NAME }} -U ${{ secrets.SQL_USERNAME }} -P "${{ secrets.SQL_PASSWORD }}" -Q "SELECT @@VERSION"
+          sqlcmd -S ${{ secrets.SQL_SERVER_NAME }} -U ${{ secrets.SQL_USERNAME }} -P "${{ secrets.SQL_PASSWORD }}" -i .github/test/demo_script.sql -v ENV_VARIABLE="${ENV_VARIABLE}"
+          if [ $? -eq 0 ]; then
             echo "::set-output name=sql-output::SQL script executed successfully"
-          } catch(err) {
-            echo "::error::SQL script execution failed with error: $err"
+          else
+            echo "::error::SQL script execution failed"
             echo "::set-output name=sql-output::SQL script execution failed"
-          } 
+            exit 1
+          fi
 
   send-email:
     runs-on: self-hosted
@@ -59,7 +60,6 @@ jobs:
           from: ${{ secrets.MAIL_USERNAME }}
           subject: "SQL Script Execution Result"
           body: |
-            SQL script execution status: ${{ needs.run-sql-script.outcome }}
-            ${{ steps.run-sql-script.outputs.sql-output }}
+            SQL script execution status: ${{ needs.run-sql-script.result }}
+            ${{ needs.run-sql-script.outputs.sql-output }}
           to: zbrabe@gmail.com
-
