@@ -33,11 +33,13 @@ jobs:
       - name: Run SQL script
         id: sql-script
         run: |
-          set -e
-          sqlcmd -S ${{ secrets.SQL_SERVER_NAME }} -U ${{ secrets.SQL_USERNAME }} -P "${{ secrets.SQL_PASSWORD }}" -Q "SELECT @@VERSION"
-          sqlcmd -S ${{ secrets.SQL_SERVER_NAME }} -U ${{ secrets.SQL_USERNAME }} -P "${{ secrets.SQL_PASSWORD }}" -i .github/test/demo_script.sql -v ENV_VARIABLE="${ENV_VARIABLE}"
+          script1_output=sqlcmd -S ${{ secrets.SQL_SERVER_NAME }} -U ${{ secrets.SQL_USERNAME }} -P "${{ secrets.SQL_PASSWORD }}" -Q "SELECT @@VERSION"
+          echo "$script1_output"
+          script2_output=sqlcmd -S ${{ secrets.SQL_SERVER_NAME }} -U ${{ secrets.SQL_USERNAME }} -P "${{ secrets.SQL_PASSWORD }}" -i .github/test/demo_script.sql -v ENV_VARIABLE="${ENV_VARIABLE}"
           if [ $? -eq 0 ]; then
-            echo "::set-output name=sql-output::SQL script executed successfully"
+            header="SQL script executed successfully"
+            final_output="$header\n$script1_output"
+            echo "::set-output name=sql-output::$final_output"
           else
             echo "::error::SQL script execution failed"
             echo "::set-output name=sql-output::SQL script execution failed"
